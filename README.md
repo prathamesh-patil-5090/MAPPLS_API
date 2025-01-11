@@ -11,7 +11,18 @@ A simple web application to find nearby barber shops using Mappls (previously Ma
      - Client ID
      - Client Secret
 
-2. Usage:
+2. Get your access token:
+   - Make a POST request to `https://outpost.mapmyindia.com/api/security/oauth/token`
+   - Include the following parameters:
+     ```
+     grant_type=client_credentials
+     client_id=your_client_id
+     client_secret=your_client_secret
+     ```
+   - The response will contain your access token
+   - Note: Access tokens expire after some time, you may need to refresh them
+
+3. Usage:
    - Clone this repository
    - Open `map.html` in your code editor
    - Replace the API credentials in the script tags:
@@ -20,7 +31,7 @@ A simple web application to find nearby barber shops using Mappls (previously Ma
    <script src="https://apis.mappls.com/advancedmaps/api/<access_token>/map_sdk_plugins?v=3.0"></script>
    ```
 
-3. Features:
+4. Features:
    - Shows nearby barber shops on map
    - Filters out beauty parlors and salons
    - Click on markers to see shop details
