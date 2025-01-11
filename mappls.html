@@ -1,0 +1,279 @@
+<html>
+    <head>
+      <title>Default NearBy Search</title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="description" content="Default NearBy Search">
+  
+          <script src="https://apis.mappls.com/advancedmaps/api/<access_token>/map_sdk?layer=vector&v=3.0&callback=initMap1"></script>
+            <script src="https://apis.mappls.com/advancedmaps/api/<access_token>/map_sdk_plugins?v=3.0"></script>
+            <style>
+           body { margin: 0 ; }
+          #map {width: 100%;height: 100vh; margin: 0; padding: 0; }
+          .shop-item {
+            padding: 10px;
+            border-bottom: 1px solid #ccc;
+            cursor: pointer;
+          }
+          .shop-item:hover {
+            background: #f0f0f0;
+          }
+          .mappls-btn {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 4px;
+            margin-top: 5px;
+            cursor: pointer;
+          }
+          .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            display: none;
+            justify-content: center;
+            align-items: center;
+          }
+          .modal {
+            background: #fff;
+            padding: 20px;
+            width: 300px;
+            border-radius: 8px;
+          }
+          .modal-buttons {
+            display: flex;
+            justify-content: flex-end;
+            margin-top: 10px;
+          }
+          .modal-buttons button {
+            margin-left: 5px;
+          }
+          .container {
+            display: flex;
+            height: 100vh;
+            width: 100%;
+          }
+          #map {
+            flex: 1;
+            height: 100vh;
+            margin: 0;
+            padding: 0;
+          }
+          #nearby_search {
+            width: 300px;
+            height: 100vh !important;
+            margin: 0 !important;
+            padding: 10px;
+            overflow-y: auto;
+            background: white;
+            box-shadow: -2px 0 5px rgba(0,0,0,0.1);
+          }
+      </style>
+      </head>
+      <body>
+        <div class="container">
+          <div id="map"></div>
+          <div id="nearby_search"></div>
+        </div>
+          <!-- Custom Modal -->
+          <div id="customAlertOverlay" class="modal-overlay">
+            <div class="modal" id="customAlertModal">
+              <div id="customAlertMessage"></div>
+              <div class="modal-buttons">
+                <button id="cancelBtn">Cancel</button>
+                <button id="okBtn">OK</button>
+              </div>
+            </div>
+          </div>
+                  <script>
+              /*Map Initialization*/
+              var map,nr;
+              const SHOPS_STORAGE_KEY = 'barber_shops';
+              
+              function saveShopsData(shops) {
+                localStorage.setItem(SHOPS_STORAGE_KEY, JSON.stringify(shops));
+              }
+            
+              function getSavedShops() {
+                const saved = localStorage.getItem(SHOPS_STORAGE_KEY);
+                return saved ? JSON.parse(saved) : [];
+              }
+
+              function initMap1(){
+              map = new mappls.Map('map', {
+                  center: [28.09, 78.3],
+                  zoom: 5
+              });
+              
+              // Get user's current location
+              if (navigator.geolocation) {
+                  navigator.geolocation.getCurrentPosition(function(position) {
+                      const lat = position.coords.latitude;
+                      const lng = position.coords.longitude;
+                      
+                      map.setCenter([lat, lng]);
+                      map.setZoom(13);
+  
+                      // Initialize nearby search with user's location
+                      var options = {
+                          divId: 'nearby_search',
+                          map: map,
+                          keywords: 'barber shop',
+                          refLocation: `${lat},${lng}`,
+                          fitbounds: true,
+                          icon: {
+                              url: 'https://apis.mappls.com/map_v3/1.png'
+                          },
+                          click_callback: function(d) {
+                              if (d) {
+                                  var l = "Name: " + d.placeName + "\nAddress: " + d.placeAddress + "\neLoc: " + d.eLoc;
+                                  alert(l);
+                              };
+                          }
+                      }
+                      list = ['beauty', 'makeup'];
+                      mappls.nearby(options, function(data) {
+                          if (data && data.data) {
+                              data.data = filterShops(data.data);
+                              
+                              // Save filtered data
+                              saveShopsData(data.data);
+                              
+                              // Clear existing content
+                              const container = document.getElementById('nearby_search');
+                              container.innerHTML = '<h3>Nearby Barber Shops</h3>';
+                              
+                              // Add filtered places to the list
+                              data.data.forEach(place => {
+                                container.appendChild(createShopListItem(place));
+                              });
+                              
+                              console.log('Filtered nearby places:', data);
+                          }
+                          nr = data;
+                          console.log(nr);
+                      });
+                  }, function(error) {
+                      console.error("Error getting location:", error);
+                      // Fallback to default location if geolocation fails
+                      initNearbySearch([28.632735, 77.219696]);
+                  });
+              } else {
+                  // Fallback for browsers that don't support geolocation
+                  initNearbySearch([28.632735, 77.219696]);
+              }
+          }
+  
+          function initNearbySearch(location) {
+              var options = {
+                  divId: 'nearby_search',
+                  map: map,
+                  keywords: 'barber shop',
+                  refLocation: location.join(','),
+                  fitbounds: true,
+                  icon: {
+                      url: 'https://apis.mappls.com/map_v3/1.png'
+                  },
+                  click_callback: function(d) {
+                      if (d) {
+                          var l = "Name: " + d.placeName + "\nAddress: " + d.placeAddress + "\neLoc: " + d.eLoc;
+                          alert(l);
+                      };
+                  }
+              }
+              mappls.nearby(options, function(data) {
+                  if (data && data.data) {
+                      data.data = filterShops(data.data);
+                      
+                      // Save filtered data
+                      saveShopsData(data.data);
+                      
+                      // Clear existing content
+                      const container = document.getElementById('nearby_search');
+                      container.innerHTML = '<h3>Nearby Barber Shops</h3>';
+                      
+                      // Add filtered places to the list
+                      data.data.forEach(place => {
+                        container.appendChild(createShopListItem(place));
+                      });
+                      
+                      console.log('Filtered nearby places:', data);
+                  }
+                  nr = data;
+                  console.log(nr);
+              });
+          }
+
+          function filterShops(shops) {
+            const excludeTerms = ['beauty', 'makeup', 'parlour', 'salon'];
+            return shops.filter(place => {
+              if (!place || !place.keywords) return true;
+              const keywords = String(place.keywords).toLowerCase();
+              return !excludeTerms.some(term => keywords.includes(term));
+            });
+          }
+
+          function createShopListItem(place) {
+            const div = document.createElement('div');
+            div.className = 'shop-item';
+            
+            // Add eLoc as data attribute
+            if (place.eLoc) {
+              div.setAttribute('data-eloc', place.eLoc);
+            }
+            
+            const info = document.createElement('div');
+            info.className = 'shop-info';
+            info.innerHTML = `
+              <strong>${place.placeName || 'Unnamed Shop'}</strong><br>
+              ${place.placeAddress || 'No address'}<br>
+              Distance: ${place.distance || 'N/A'} m<br>
+              <button class="redirect-btn" onclick="window.open('https://www.mappls.com/${place.eLoc}', '_blank')">
+                🔗 Open in Mappls
+              </button>
+            `;
+            
+            div.appendChild(info);
+            return div;
+          }
+
+          function showCustomAlert(message, okCallback) {
+            const overlay = document.getElementById('customAlertOverlay');
+            const msgDiv = document.getElementById('customAlertMessage');
+            const okBtn = document.getElementById('okBtn');
+            const cancelBtn = document.getElementById('cancelBtn');
+      
+            msgDiv.textContent = message;
+            overlay.style.display = 'flex';
+      
+            okBtn.onclick = () => {
+              overlay.style.display = 'none';
+              okCallback();
+            };
+            cancelBtn.onclick = () => {
+              overlay.style.display = 'none';
+            };
+          }
+
+          const style = document.createElement('style');
+          style.textContent = `
+            .redirect-btn {
+              background: #4CAF50;
+              color: white;
+              border: none;
+              padding: 8px 16px;
+              border-radius: 4px;
+              margin-top: 8px;
+              cursor: pointer;
+              width: 100%;
+            }
+            .redirect-btn:hover {
+              background: #45a049;
+            }
+          `;
+          document.head.appendChild(style);
+          </script>
+          </body>
+    </html>
+
+
