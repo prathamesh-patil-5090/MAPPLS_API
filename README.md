@@ -28,7 +28,7 @@ A simple web application to find nearby barber shops using Mappls (previously Ma
 3. Usage:
    - Clone this repository
    - Open `map.html` in your code editor
-   - Replace the API credentials in the script tags:
+   - Replace the API credentials in the script tags. Paste the access token got here:
    ```html
    <script src="https://apis.mappls.com/advancedmaps/api/<access_token>/map_sdk?layer=vector&v=3.0&callback=initMap1"></script>
    <script src="https://apis.mappls.com/advancedmaps/api/<access_token>/map_sdk_plugins?v=3.0"></script>
