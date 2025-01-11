@@ -10,10 +10,13 @@ A simple web application to find nearby barber shops using Mappls (previously Ma
      - API Key
      - Client ID
      - Client Secret
+    
+   
+![Screenshot 2025-01-11 145827](https://github.com/user-attachments/assets/b5f79a27-5eca-41bd-b091-f0ede369adfa)
 
 2. Get your access token:
-   - Make a POST request to `https://outpost.mapmyindia.com/api/security/oauth/token`
-   - Include the following parameters:
+   - Make a POST request to `https://outpost.mapmyindia.com/api/security/oauth/token` using postman or thunderclient like in screenshot.
+   - Include the following parameters in body/ x-www-form-urlencoded like showed in screenshot:
      ```
      grant_type=client_credentials
      client_id=your_client_id
